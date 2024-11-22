@@ -10,8 +10,8 @@ How to use:
 import(
     "github.com/0Xero7/limitless"
     "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+    "github.com/aws/aws-sdk-go-v2/credentials"
+    "github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type User struct {
@@ -27,9 +27,9 @@ func main() {
     limitlessClient := limitless.NewClient(dynamodb.NewFromConfig(cfg))
 
     // Scan
-	results, lastEvaluatedKey, err := limitless.Scan[User](limitlessClient, ScanRequest{
-		TableName: "users",
-	})
+    results, lastEvaluatedKey, err := limitless.Scan[User](limitlessClient, ScanRequest{
+        TableName: "users",
+    })
 }
 
 ```
