@@ -136,27 +136,18 @@ func BatchGetItem[T any](l *Limitless, tableName string, items []T) ([]T, error)
 	return result, err
 }
 
-type ScanRequest struct {
-	TableName         string
-	IndexName         *string
-	ConsistentRead    *bool
-	Limit             *int32
-	ExclusiveStartKey map[string]types.AttributeValue
-}
-
-type QueryRequest struct {
-	TableName                string
-	Condition                string
-	Values                   map[string]any
-	IndexName                *string
-	ConsistentRead           *bool
-	Ascending                *bool
-	Limit                    *int32
-	ProjectionExpression     *string
-	ExpressionAttributeNames map[string]string
-	ExclusiveStartKey        map[string]types.AttributeValue
-}
-
+// Query performs a query operation on a DynamoDB table using the provided query request.
+// It processes the condition and values, builds the necessary input for the DynamoDB Query API,
+// executes the query, and unmarshals the results into a slice of type T.
+//
+// Parameters:
+//   - l: A pointer to the Limitless client.
+//   - queryRequest: A QueryRequest struct containing the query parameters.
+//
+// Returns:
+//   - []T: A slice of type T containing the query results.
+//   - map[string]types.AttributeValue: The LastEvaluatedKey from the query, which can be used for pagination.
+//   - error: An error if the query operation fails, or nil if successful.
 func Query[T any](l *Limitless, queryRequest QueryRequest) ([]T, map[string]types.AttributeValue, error) {
 	condition := queryRequest.Condition
 	values := queryRequest.Values
@@ -239,11 +230,6 @@ func Query[T any](l *Limitless, queryRequest QueryRequest) ([]T, map[string]type
 	return res, result.LastEvaluatedKey, nil
 }
 
-type PutItemRequest struct {
-	TableName string
-	Item      interface{}
-}
-
 func TransactWriteItems(l *Limitless, items *[]PutItemRequest, idempotencyToken *string) error {
 	transactItems := make([]types.TransactWriteItem, 0)
 	for _, k := range *items {
@@ -306,6 +292,15 @@ func UpdateItem[T any](l *Limitless, tableName string, key *T, item *T) error {
 	return nil
 }
 
+// DeleteItem deletes a single item from a DynamoDB table based on the provided key.
+//
+// Parameters:
+//   - l: A pointer to the Limitless client used to interact with DynamoDB.
+//   - tableName: The name of the DynamoDB table from which to delete the item.
+//   - key: A pointer to a struct of type T representing the primary key of the item to be deleted.
+//
+// Returns:
+//   - error: An error if the deletion operation fails, or nil if successful.
 func DeleteItem[T any](l *Limitless, tableName string, key *T) error {
 	Key, err := attributevalue.MarshalMap(key)
 	if err != nil {
@@ -319,6 +314,17 @@ func DeleteItem[T any](l *Limitless, tableName string, key *T) error {
 	return err
 }
 
+// Scan performs a scan operation on a DynamoDB table using the provided scan request.
+// It retrieves items from the table or a secondary index, and unmarshals the results into a slice of type T.
+//
+// Parameters:
+//   - l: A pointer to the Limitless client.
+//   - request: A ScanRequest struct containing the scan parameters.
+//
+// Returns:
+//   - []T: A slice of type T containing the scan results.
+//   - map[string]types.AttributeValue: The LastEvaluatedKey from the scan, which can be used for pagination. Is nil if there are no items left to scan.
+//   - error: An error if the scan operation fails, or nil if successful.
 func Scan[T any](l *Limitless, request ScanRequest) ([]T, map[string]types.AttributeValue, error) {
 	resp, err := l.ddb.Scan(context.TODO(), &dynamodb.ScanInput{
 		TableName:         &request.TableName,
