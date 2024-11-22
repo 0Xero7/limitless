@@ -2,7 +2,7 @@
 
 A thin wrapper around AWS DynamoDB. Uses AWS Go SDK V2.
 
-Makes life easier and less verbose. Somewhat battle-tested. Removes need to manually Marshal/Unmarshall to/from AttributeValues. Uses the "dynamodb" tag for serialization and deserialization.
+Makes life easier and less verbose. Somewhat battle-tested. Removes need to manually Marshal/Unmarshall to/from AttributeValues. Uses the "dynamodbav" tag for serialization and deserialization.
 
 How to use:
 
