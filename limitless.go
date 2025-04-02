@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -290,6 +291,38 @@ func UpdateItem[T any](l *Limitless, tableName string, key *T, item *T) error {
 		return err
 	}
 	return nil
+}
+
+func AtomicAddUpdateItem[T any, S int | int16 | int32 | int64 | float32 | float64 | uint | uint16 | uint32 | uint64](l *Limitless, tableName string, key *T, field string, start, amount S) (*T, error) {
+	keyMap, err := attributevalue.MarshalMap(*key)
+	if err != nil {
+		return nil, err
+	}
+
+	udt, err := l.ddb.UpdateItem(context.TODO(), &dynamodb.UpdateItemInput{
+		TableName:        &tableName,
+		Key:              keyMap,
+		UpdateExpression: aws.String("SET #" + field + " = if_not_exists(" + field + ", :start) + :inc"),
+		ExpressionAttributeNames: map[string]string{
+			"#" + field: field,
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":start": &types.AttributeValueMemberN{
+				Value: fmt.Sprintf("%v", start),
+			},
+			":inc": &types.AttributeValueMemberN{
+				Value: fmt.Sprintf("%v", amount),
+			},
+		},
+		ReturnValues: types.ReturnValueUpdatedNew,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var result = new(T)
+	err = attributevalue.UnmarshalMap(udt.Attributes, result)
+	return result, err
 }
 
 // DeleteItem deletes a single item from a DynamoDB table based on the provided key.
