@@ -293,7 +293,7 @@ func UpdateItem[T any](l *Limitless, tableName string, key *T, item *T) error {
 	return nil
 }
 
-func AtomicAddUpdateItem[T any, S int | int16 | int32 | int64 | float32 | float64 | uint | uint16 | uint32 | uint64](l *Limitless, tableName string, key *T, field string, start, amount S) (*T, error) {
+func AtomicAddUpdateItem[T any, S int | int16 | int32 | int64 | float32 | float64 | uint | uint16 | uint32 | uint64](l *Limitless, tableName string, key *T, field string, start, amount S, returnValues types.ReturnValue) (*T, error) {
 	keyMap, err := attributevalue.MarshalMap(*key)
 	if err != nil {
 		return nil, err
@@ -314,7 +314,7 @@ func AtomicAddUpdateItem[T any, S int | int16 | int32 | int64 | float32 | float6
 				Value: fmt.Sprintf("%v", amount),
 			},
 		},
-		ReturnValues: types.ReturnValueUpdatedNew,
+		ReturnValues: returnValues,
 	})
 	if err != nil {
 		return nil, err
