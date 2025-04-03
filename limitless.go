@@ -202,6 +202,24 @@ func Query[T any](l *Limitless, queryRequest QueryRequest) ([]T, map[string]type
 	for k, v := range queryRequest.ExpressionAttributeNames {
 		expressionAttributeNames[k] = v
 	}
+
+	// Parse Filter Expression
+	filterExpression := make(map[string]types.Condition)
+	if queryRequest.Filter != nil {
+		for k, v := range queryRequest.Filter {
+			parsedValues, err := attributevalue.MarshalList(v.Values)
+			if err != nil {
+				return nil, nil, err
+			}
+			filterExpression[k] = types.Condition{
+				ComparisonOperator: v.ComparisonOperator,
+				AttributeValueList: parsedValues,
+			}
+		}
+	} else {
+		filterExpression = nil
+	}
+
 	queryInput := new(dynamodb.QueryInput)
 	queryInput.TableName = &queryRequest.TableName
 	queryInput.KeyConditionExpression = &condition
@@ -213,6 +231,7 @@ func Query[T any](l *Limitless, queryRequest QueryRequest) ([]T, map[string]type
 	queryInput.ScanIndexForward = queryRequest.Ascending
 	queryInput.ExclusiveStartKey = queryRequest.ExclusiveStartKey
 	queryInput.ProjectionExpression = queryRequest.ProjectionExpression
+	queryInput.QueryFilter = filterExpression
 
 	result, err := l.ddb.Query(context.TODO(), queryInput)
 	if err != nil {

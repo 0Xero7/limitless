@@ -23,6 +23,11 @@ type ScanRequest struct {
 	ExclusiveStartKey map[string]types.AttributeValue
 }
 
+type FilterExpression struct {
+	ComparisonOperator types.ComparisonOperator
+	Values             []any
+}
+
 // QueryRequest represents the parameters for a DynamoDB query operation.
 type QueryRequest struct {
 	// TableName is the name of the DynamoDB table to query.
@@ -63,6 +68,10 @@ type QueryRequest struct {
 	// ExclusiveStartKey is the primary key of the item where the query operation will start.
 	// Used for pagination to resume a query operation.
 	ExclusiveStartKey map[string]types.AttributeValue
+
+	// FilterExpression is an optional filter expression to apply after the query.
+	// The filter expression is evaluated after the query and returns only the items that match the filter.
+	Filter map[string]FilterExpression
 }
 
 // PutItemRequest represents the parameters for a DynamoDB PutItem operation.
